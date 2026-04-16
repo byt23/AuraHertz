@@ -6,12 +6,18 @@
 //
 
 import SwiftUI
+import SwiftData // YENİ
 
 @main
 struct AuraHertzApp: App {
+    @StateObject private var viewModel = AuraHertzViewModel()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainView()
+                .environmentObject(viewModel)
         }
+        // Tüm uygulama genelinde PersistentAura veritabanını aktif et
+        .modelContainer(for: PersistentAura.self)
     }
 }
