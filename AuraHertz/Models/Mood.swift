@@ -8,7 +8,9 @@
 import Foundation
 
 struct Mood {
-    let description: String
-    let targetHue: Double        // 0.0 - 1.0 arası (Renk çarkı)
-    let targetFrequency: Double  // Örn: 432.0 Hz
+    var description: String
+    var targetHue: Double
+    var targetFrequency: Double
+    // YENİ EKLENEN KISIM: Yapay zekanın uzun edebi analizi
+    var detailedReport: String
 }

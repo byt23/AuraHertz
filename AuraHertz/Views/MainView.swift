@@ -16,12 +16,13 @@ struct MainView: View {
     
     var body: some View {
         ZStack {
+            // Arka plan rengi kullanıcı aurasına göre değişir
             Color(hue: viewModel.userHue, saturation: 0.7, brightness: 0.5)
                 .ignoresSafeArea()
                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.userHue)
             
             VStack(spacing: 15) {
-                // Üst Bar: Level Göstergesi ve Günlük Butonu
+                // Üst Bar: Seviye ve Günlük
                 HStack {
                     Text("SEVİYE \(viewModel.level)")
                         .font(.headline)
@@ -30,7 +31,6 @@ struct MainView: View {
                     
                     Spacer()
                     
-                    // Günlük Butonu
                     Button(action: { isDiaryPresented.toggle() }) {
                         Image(systemName: "book.pages")
                             .font(.title2)
@@ -53,7 +53,7 @@ struct MainView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                 
-                // Anlık Transcription UI (Mikrofon Konuşması)
+                // Mikrofon konuşması anlık metni
                 if !viewModel.currentTranscription.isEmpty {
                     Text(viewModel.currentTranscription)
                         .font(.body)
@@ -65,11 +65,12 @@ struct MainView: View {
                         .padding(.horizontal)
                 }
                 
+                // Aura Dalga Animasyonu
                 WaveformView(frequency: viewModel.userFrequency, hue: viewModel.userHue)
                     .frame(height: 80)
                     .padding(.vertical, 10)
                 
-                // Uyum Yüzdesi
+                // Senkronizasyon Yüzdesi
                 VStack {
                     Text("%\(viewModel.matchScore)")
                         .font(.system(size: 72, weight: .black, design: .rounded))
@@ -84,16 +85,42 @@ struct MainView: View {
                 
                 Spacer()
                 
-                // Kontrolcü veya Başarı/Mikrofon
+                // OYUN DURUMU KONTROLÜ
                 if viewModel.showSuccess {
-                    // Başarı, Kaydetme, Paylaşım ve DEVAM Ekranı
+                    // BAŞARI EKRANI
                     VStack(spacing: 20) {
                         Text("SENKRONİZASYON TAMAM! ✨")
                             .font(.title3.bold())
                             .foregroundColor(.white)
                         
+                        // Edebi Aura Raporu Kutusu (KAYDIRILABİLİR GÜNCELLEME)
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("AURA ANALİZİN")
+                                .font(.caption)
+                                .tracking(2)
+                                .foregroundColor(.white.opacity(0.6))
+                            
+                            ScrollView(showsIndicators: true) {
+                                Text(viewModel.currentMood.detailedReport)
+                                    .font(.system(.subheadline, design: .serif))
+                                    .italic()
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .multilineTextAlignment(.leading)
+                                    .lineSpacing(4)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .frame(maxHeight: 120) // Yazı uzunsa kaydırılabilir, butonları aşağı itmez
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                        
                         HStack(spacing: 15) {
-                            // Manuel Kaydet Butonu
+                            // Kaydet Butonu
                             Button(action: {
                                 saveToDiary()
                                 let generator = UINotificationFeedbackGenerator()
@@ -109,7 +136,7 @@ struct MainView: View {
                                 .foregroundColor(.white)
                             }
                             
-                            // Paylaşım Butonu
+                            // Paylaş Butonu
                             if let imageToShare = shareService.renderedImage {
                                 ShareLink(item: imageToShare, preview: SharePreview("AuraHertz Kaydım", image: imageToShare)) {
                                     HStack {
@@ -124,7 +151,7 @@ struct MainView: View {
                             }
                         }
                         
-                        // Oyunu devam ettiren buton!
+                        // Sonraki Seviye Butonu
                         Button(action: {
                             viewModel.prepareForNextLevel()
                         }) {
@@ -136,15 +163,13 @@ struct MainView: View {
                                 .foregroundColor(.black)
                                 .cornerRadius(10)
                         }
-                        .padding(.top, 5)
-                        
                     }
                     .padding()
                     .background(Color.black.opacity(0.4))
                     .cornerRadius(15)
                     .transition(.scale.combined(with: .opacity))
                     .onAppear {
-                        // ÇÖZÜM BURADA: Arayüz çizildikten 0.3 saniye sonra resmi oluştur
+                        // Arayüzün oturması için küçük bir bekleme
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             shareService.renderAuraCard(
                                 mood: viewModel.currentMood.description,
@@ -156,11 +181,11 @@ struct MainView: View {
                     }
                     
                 } else if viewModel.level > 1 && viewModel.currentMood.description == "Anlat, seni dinliyorum..." {
-                    // Level 2+ başlangıcında mikrofonu göster
+                    // Mikrofon Aşaması
                     SpeechMicrophoneButton(viewModel: viewModel)
                         .transition(.move(edge: .bottom))
                 } else {
-                    // Normal oyun durumu
+                    // Manuel Ayar Aşaması (Sliderlar)
                     ControlSlidersView()
                         .padding(.horizontal, 20)
                         .transition(.slide)

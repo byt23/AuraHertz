@@ -6,36 +6,47 @@
 //
 
 import Foundation
-import NaturalLanguage
 
 class SentimentService {
     
-    // Girilen metne göre renk ve frekans hesaplayan yapay zeka fonksiyonu
     func analyze(text: String) -> Mood {
-        let tagger = NLTagger(tagSchemes: [.sentimentScore])
-        tagger.string = text
+        let lowercasedText = text.lowercased()
         
-        let (sentiment, _) = tagger.tag(at: text.startIndex, unit: .paragraph, scheme: .sentimentScore)
-        
-        // Skor -1.0 (Çok Negatif/Üzgün) ile 1.0 (Çok Pozitif/Mutlu) arasındadır
-        let score = Double(sentiment?.rawValue ?? "0.0") ?? 0.0
-        
-        // 1. Skora göre Renk (Hue) Belirleme
-        // Negatifse Mavi/Mor (0.6 - 0.8), Pozitifse Sarı/Turuncu (0.1 - 0.2), Nötrse Yeşil (0.4)
-        var targetHue: Double = 0.4
-        if score < -0.3 { targetHue = 0.65 } // Melankolik
-        else if score > 0.3 { targetHue = 0.15 } // Enerjik
-        
-        // 2. Skora göre Frekans (Hz) Belirleme
-        // Negatif duygular düşük (bass) frekans, pozitifler yüksek frekans (300Hz - 600Hz arası)
-        let targetFreq = 450.0 + (score * 150.0)
-        
-        // 3. Etiket Belirleme
-        let moodDesc: String
-        if score > 0.5 { moodDesc = "Enerjik ve Pozitif" }
-        else if score < -0.5 { moodDesc = "Melankolik ve Derin" }
-        else { moodDesc = "Dengeli ve Sakin" }
-        
-        return Mood(description: moodDesc, targetHue: targetHue, targetFrequency: targetFreq)
+        // 1. Durum: Yoğun, Düşünceli, Melankolik
+        if lowercasedText.contains("üzgün") || lowercasedText.contains("kötü") || lowercasedText.contains("yalnız") || lowercasedText.contains("sıkkın") {
+            return Mood(
+                description: "Derin ve Düşünceli",
+                targetHue: 0.6, // Koyu Mavi
+                targetFrequency: 396.0,
+                detailedReport: "Tıpkı bir Dostoyevski romanındaki karakterler gibi, içinde fırtınalar kopan ama dışarıya sessiz bir duvar örmüş gibisin. Bu derin iç hesaplaşma yorucu olabilir, ama aynı zamanda ruhunun en çok olgunlaştığı yer de burasıdır. Auranı 396 Hz'in iyileştirici titreşimleriyle dengelemeye çalış."
+            )
+        }
+        // 2. Durum: Enerjik, Heyecanlı, Güçlü
+        else if lowercasedText.contains("mutlu") || lowercasedText.contains("harika") || lowercasedText.contains("enerjik") || lowercasedText.contains("iyi") || lowercasedText.contains("süper") {
+            return Mood(
+                description: "Coşkulu ve Aydınlık",
+                targetHue: 0.15, // Sarı / Turuncu
+                targetFrequency: 528.0,
+                detailedReport: "İçinde destansı bir tarihi kurgunun en zafer dolu sahnesi yaşanıyor adeta. Rüzgarı arkana almış, umut dolu ve sarsılmaz bir enerji yayıyorsun. Bu altın rengi auranı 528 Hz frekansı ile etrafındaki herkese bulaştırabilirsin."
+            )
+        }
+        // 3. Durum: Yorgun, Stresli
+        else if lowercasedText.contains("yoruldum") || lowercasedText.contains("stres") || lowercasedText.contains("baskı") || lowercasedText.contains("uyku") {
+            return Mood(
+                description: "Sisli ve Yorgun",
+                targetHue: 0.8, // Mor
+                targetFrequency: 417.0,
+                detailedReport: "Denizsiz bir şehrin gri sabahları gibi hissediyorsun... Omuzlarında görünmez bir ağırlık var. Livaneli'nin hüzünlü melodilerindeki o dinginliğe ve kabullenişe ihtiyacın var. 417 Hz frekansı, zihnindeki bu yoğun sisi dağıtmak için en doğru anahtar."
+            )
+        }
+        // Başlangıç veya Nötr Durum
+        else {
+            return Mood(
+                description: "Dengeli ve Sakin",
+                targetHue: 0.4, // Yeşil
+                targetFrequency: 432.0,
+                detailedReport: "Kendi merkezindesin. Ne çok yükseklerde uçuyor ne de derinlere iniyorsun. Evrenin doğal rezonansı olan 432 Hz ile uyumlanıp bu dingin anın tadını çıkar."
+            )
+        }
     }
 }

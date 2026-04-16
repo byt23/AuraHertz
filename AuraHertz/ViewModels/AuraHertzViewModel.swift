@@ -9,7 +9,6 @@ import SwiftUI
 import Combine
 import UIKit
 
-// @MainActor KALDIRILDI! Çökmenin asıl sebebi oydu.
 class AuraHertzViewModel: ObservableObject {
     @Published var currentMood: Mood
     @Published var userHue: Double = 0.5
@@ -26,7 +25,6 @@ class AuraHertzViewModel: ObservableObject {
     private let sentimentService = SentimentService()
     private let speechService = SpeechService()
     
-    // Titreşim spam'ini engellemek için önceki skoru hafızada tutuyoruz
     private var lastHapticScore: Int = 0
     
     init() {
@@ -65,12 +63,10 @@ class AuraHertzViewModel: ObservableObject {
         }
     }
     
-    // Titreşim Spam Engelleyici (Sadece hedeflerde titrer)
     private func triggerHaptics() {
         guard matchScore != lastHapticScore else { return }
         lastHapticScore = matchScore
         
-        // Donanımsal titreşimleri her ihtimale karşı ana sıraya (Main Thread) alıyoruz
         DispatchQueue.main.async {
             if self.matchScore == 80 {
                 UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
@@ -98,7 +94,13 @@ class AuraHertzViewModel: ObservableObject {
         self.userFrequency = 440.0
         self.currentTranscription = ""
         
-        self.currentMood = Mood(description: "Anlat, seni dinliyorum...", targetHue: userHue, targetFrequency: userFrequency)
+        // ÇÖZÜM 1: Yeni bölüme geçerken detailedReport eklendi
+        self.currentMood = Mood(
+            description: "Anlat, seni dinliyorum...",
+            targetHue: userHue,
+            targetFrequency: userFrequency,
+            detailedReport: "Yeni bir frekans yaratmak için derin bir nefes al ve şu an ne hissettiğini mikrofona anlat. Yapay zeka auranı hissedecek."
+        )
         self.matchScore = 0
         self.lastHapticScore = 0
     }
@@ -117,7 +119,13 @@ class AuraHertzViewModel: ObservableObject {
                     
                 case .failure(let error):
                     print("🎙️ Ses Tanıma Hatası: \(error)")
-                    self.currentMood = Mood(description: "Hata: Ses tanıma başarısız.", targetHue: 0.0, targetFrequency: 440.0)
+                    // ÇÖZÜM 2: Hata durumuna detailedReport eklendi
+                    self.currentMood = Mood(
+                        description: "Hata: Ses tanıma başarısız.",
+                        targetHue: 0.0,
+                        targetFrequency: 440.0,
+                        detailedReport: "Sesini duyamadık. Lütfen mikrofon ayarlarını kontrol edip tekrar dene."
+                    )
                 }
             }
         }
